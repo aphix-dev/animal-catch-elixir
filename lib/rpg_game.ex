@@ -9,17 +9,18 @@ defmodule RpgGame do
 
   def game_loop(:active, data) do
     IO.puts "\nWhat do you want to do?\n(1) Search\n(2) View Stats"
-    IO.gets(": ") 
+    IO.gets(": ")
       |> String.trim
       |> choice(data)
   end
 
+############################# BASIC CHOICES #########################################
   def choice("1", data) do
     IO.puts "\nSearching...\n"
 
     len = length(PlayerData.animals) - 1
-    rng = Enum.random(0..len) 
-    animal = Enum.at(PlayerData.animals, rng) 
+    rng = Enum.random(0..len)
+    animal = Enum.at(PlayerData.animals, rng)
     IO.puts("A wild " <> animal.name <> " appeared!")
 
     catch_loop(animal, data)
@@ -39,7 +40,11 @@ defmodule RpgGame do
     br
     game_loop(:active, data)
   end
+#######################################################################################
 
+  @doc """
+    the second loop that happens while the player is trying to catch an animal
+  """
   def catch_loop(animal, data) do
     IO.puts("Do you want to\n(1) Throw A Ball\n(2) Run")
     IO.gets(": ")
@@ -47,43 +52,24 @@ defmodule RpgGame do
       |> catch_choice(animal, data)
   end
 
+######################################### CATCH CHOICES #########################################
   def catch_choice("1", animal, data) do
     br
-    IO.puts("What type of orb do you want to use?\n(n) Normal Orb\n(s) Special Orb")  
+    IO.puts("What type of orb do you want to use?\n(n) Normal Orb\n(s) Special Orb")
     IO.gets(": ")
       |> String.trim
       |> ball_choice(animal, data)
   end
 
-  def ball_choice("n", animal, data) do
-    data = Map.put(data, :normal_balls, data.normal_balls - 1)
-    catch_animal(animal.catch_rate, animal, data)
-  end
-
-  def ball_choice("s", animal, data) do
-    data = Map.put(data, :special_balls, data.special_balls - 1)
-    catch_animal(div(animal.catch_rate, 2), animal, data)
-  end
-
-  def catch_animal(max, animal, data) do
-    rng = Enum.random(0..max)    
-    IO.inspect rng
-    if rng === 3 do
-      catch_choice(:caught, animal, data)
-    else
-      br
-      IO.puts animal.name <> " popped out!"
-      br
-      catch_loop(animal, data)
-    end
-  end
-
   def catch_choice(:caught, animal, data) do
     :caught
-    
+
     # add the animal to the player's caught list
     data = Map.put(data, :caught, [animal | data.caught])
 
+    IO.puts("You caught " <> animal.name <> "!\n")
+
+    # go back to the game
     game_loop(:active, data)
   end
 
@@ -96,6 +82,32 @@ defmodule RpgGame do
 
   def catch_choice(_choice, animal, data) do
     catch_loop(animal, data)
+  end
+############################################################################################
+
+################ ball_choice ######################################################
+  def ball_choice("n", animal, data) do
+    data = Map.put(data, :normal_balls, data.normal_balls - 1)
+    catch_animal(animal.catch_rate, animal, data)
+  end
+
+  def ball_choice("s", animal, data) do
+    data = Map.put(data, :special_balls, data.special_balls - 1)
+    catch_animal(div(animal.catch_rate, 2), animal, data)
+  end
+###################################################################################
+
+  def catch_animal(max, animal, data) do
+    rng = Enum.random(0..max)
+    IO.inspect rng
+    if rng === 3 do
+      catch_choice(:caught, animal, data)
+    else
+      br
+      IO.puts animal.name <> " popped out!"
+      br
+      catch_loop(animal, data)
+    end
   end
 
   def ball_choice(_choice, animal, data) do
